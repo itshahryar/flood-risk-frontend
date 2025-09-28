@@ -80,7 +80,7 @@ export default function About() {
               Our platform allows you to <span className="font-semibold">upload images, analyze risk levels, and plan your safety measures</span> with advanced AI algorithms.
             </p>
             <p className="text-lg leading-relaxed mb-6">
-              This is currently a <span className="font-semibold">prototype demonstrating the potential of AI in disaster management</span>. We're continuously working to improve 
+              This is currently a <span className="font-semibold">prototype demonstrating the potential of AI in disaster management</span>. We&apos;re continuously working to improve 
               our AI models, enhance prediction accuracy, and expand our capabilities to serve communities better.
             </p>
             <p className="text-lg leading-relaxed">
