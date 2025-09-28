@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
-  MapPin,
   AlertTriangle,
   CheckCircle,
   Info,
@@ -26,7 +24,6 @@ import {
   Globe,
   Shield,
   TrendingUp,
-  Map,
   Upload,
   Image,
   Camera,
@@ -52,65 +49,31 @@ export default function FloodDetectionSystem() {
     "coordinates"
   );
 
-  const [map, setMap] = useState<google.maps.Map | null>(null);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [mapError, setMapError] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
   const [locationInfo, setLocationInfo] = useState<string>("");
   const [waterBodies, setWaterBodies] = useState<string>("");
-  const mapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const API_BASE_URL = "https://flood-risk-backend-production.up.railway.app/";
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
-  // Initialize Google Maps
-  useEffect(() => {
-    const initMap = async () => {
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-      if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
-        setMapError(true);
-        return;
-      }
-
-      try {
-        const google = await new Loader({
-          apiKey,
-          version: "weekly",
-          libraries: ["places"],
-        }).load();
-        if (mapRef.current) {
-          setMap(
-            new google.maps.Map(mapRef.current, {
-              center: { lat: 40.7128, lng: -74.006 },
-              zoom: 10,
-              mapTypeId: google.maps.MapTypeId.TERRAIN,
-            })
-          );
-        }
-      } catch (error) {
-        console.error("Error loading Google Maps:", error);
-        setMapError(true);
-      }
-    };
-    initMap();
-  }, []);
-
   // API calls
-const callAPI = async (endpoint: string, data: Record<string, unknown> | FormData) => {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: "POST",
-    headers: endpoint.includes("coordinates")
-      ? { "Content-Type": "application/json" }
-      : {},
-    body: endpoint.includes("coordinates") ? JSON.stringify(data as Record<string, unknown>) : data,
-  });
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
-  return response.json();
-};
+  const callAPI = async (endpoint: string, data: Record<string, unknown> | FormData) => {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: "POST",
+      headers: endpoint.includes("coordinates")
+        ? { "Content-Type": "application/json" }
+        : {},
+      body: endpoint.includes("coordinates") ? JSON.stringify(data as Record<string, unknown>) : data,
+    });
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    return response.json();
+  };
+
   // Analysis handlers
   const handleCoordinateSubmit = async () => {
     if (!inputLat || !inputLng) {
@@ -156,36 +119,6 @@ const callAPI = async (endpoint: string, data: Record<string, unknown> | FormDat
       setAiAnalysis(apiResponse.ai_analysis || "");
       setLocationInfo(apiResponse.location_info || "");
       setWaterBodies(apiResponse.water_bodies || "");
-
-      // Update map
-      if (map) {
-        map.setCenter({ lat, lng });
-        map.setZoom(15);
-        map.data.forEach((feature) => map.data.remove(feature));
-        new google.maps.Marker({
-          position: { lat, lng },
-          map,
-          title: "Selected Location",
-        });
-        const riskColor =
-          riskData.riskLevel === "Very High"
-            ? "#FF0000"
-            : riskData.riskLevel === "High"
-            ? "#FF6600"
-            : riskData.riskLevel === "Medium"
-            ? "#FFCC00"
-            : "#00FF00";
-        new google.maps.Circle({
-          strokeColor: riskColor,
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: riskColor,
-          fillOpacity: 0.35,
-          map,
-          center: { lat, lng },
-          radius: 1000,
-        });
-      }
     } catch (error) {
       console.error("Error analyzing coordinates:", error);
       setAlertMessage(
@@ -319,7 +252,7 @@ const callAPI = async (endpoint: string, data: Record<string, unknown> | FormDat
                     value="coordinates"
                     className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
                   >
-                    <MapPin className="h-4 w-4" />
+                    <Globe className="h-4 w-4" />
                     Coordinates
                   </TabsTrigger>
                   <TabsTrigger
@@ -369,7 +302,7 @@ const callAPI = async (endpoint: string, data: Record<string, unknown> | FormDat
                       </>
                     ) : (
                       <>
-                        <MapPin className="mr-2 h-4 w-4" />
+                        <Globe className="mr-2 h-4 w-4" />
                         Analyze Coordinates
                       </>
                     )}
@@ -581,31 +514,6 @@ const callAPI = async (endpoint: string, data: Record<string, unknown> | FormDat
             </CardContent>
           </Card>
         </div>
-
-        {/* Map Section */}
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-emerald-600" />
-              Interactive Map
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {mapError ? (
-              <div className="w-full h-80 rounded-lg border border-emerald-200 bg-emerald-50 flex flex-col items-center justify-center">
-                <Map className="h-16 w-16 text-emerald-300 mb-4" />
-                <h3 className="text-lg font-semibold text-emerald-800 mb-2">
-                  Map Not Available
-                </h3>
-              </div>
-            ) : (
-              <div
-                ref={mapRef}
-                className="w-full h-80 rounded-lg border border-emerald-200"
-              />
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Alert Dialog with Close Button */}
