@@ -32,7 +32,6 @@ import {
   Camera,
   X,
 } from "lucide-react";
-import { Component, ErrorInfo, ReactNode } from "react";
 
 interface FloodRiskData {
   riskLevel: "Low" | "Medium" | "High" | "Very High";
@@ -43,54 +42,6 @@ interface FloodRiskData {
   locationInfo?: string;
   waterBodies?: string;
 }
-
-// Error Boundary Component
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
-
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Error caught by boundary:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <h2 className="text-lg font-bold text-red-800 mb-2">Something went wrong</h2>
-          <p className="text-red-600">{this.state.error?.message}</p>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-// Helper function to escape HTML
-const escapeHtml = (unsafe: string): string => {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-};
 
 export default function FloodDetectionSystem() {
   const [inputLat, setInputLat] = useState("");
@@ -120,11 +71,8 @@ export default function FloodDetectionSystem() {
   useEffect(() => {
     const initMap = async () => {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-      
       if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
         setMapError(true);
-        setAlertMessage("Google Maps API key is not configured");
-        setShowAlert(true);
         return;
       }
 
@@ -134,7 +82,6 @@ export default function FloodDetectionSystem() {
           version: "weekly",
           libraries: ["places"],
         }).load();
-        
         if (mapRef.current) {
           setMap(
             new google.maps.Map(mapRef.current, {
@@ -147,11 +94,8 @@ export default function FloodDetectionSystem() {
       } catch (error) {
         console.error("Error loading Google Maps:", error);
         setMapError(true);
-        setAlertMessage("Failed to load Google Maps. Please check your API key.");
-        setShowAlert(true);
       }
     };
-    
     initMap();
   }, []);
 
@@ -336,87 +280,169 @@ export default function FloodDetectionSystem() {
     );
 
   return (
-    <ErrorBoundary>
-      <div className="">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <div className="p-3 bg-emerald-100 rounded-full mr-4">
-                <Globe className="h-8 w-8 text-emerald-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-slate-700">
-                Flood Detection System
-              </h1>
+    <div className="">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="p-3 bg-emerald-100 rounded-full mr-4">
+              <Globe className="h-8 w-8 text-emerald-600" />
             </div>
-            <p className="text-emerald-700">
-              Analyze flood risk using coordinates or upload images for AI-powered
-              terrain analysis
-            </p>
+            <h1 className="text-3xl font-bold text-slate-700">
+              Flood Detection System
+            </h1>
           </div>
+          <p className="text-emerald-700">
+            Analyze flood risk using coordinates or upload images for AI-powered
+            terrain analysis
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Input Section */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-emerald-600" />
-                  Analysis Methods
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs
-                  value={analysisType}
-                  onValueChange={(value) =>
-                    setAnalysisType(value as "coordinates" | "image")
-                  }
-                  className="w-full"
-                >
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger
-                      value="coordinates"
-                      className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
-                    >
-                      <MapPin className="h-4 w-4" />
-                      Coordinates
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="image"
-                      className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
-                    >
-                      <Image className="h-4 w-4" />
-                      Image Analysis
-                    </TabsTrigger>
-                  </TabsList>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Input Section */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-emerald-600" />
+                Analysis Methods
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs
+                value={analysisType}
+                onValueChange={(value) =>
+                  setAnalysisType(value as "coordinates" | "image")
+                }
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger
+                    value="coordinates"
+                    className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Coordinates
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="image"
+                    className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
+                  >
+                    <Image className="h-4 w-4" />
+                    Image Analysis
+                  </TabsTrigger>
+                </TabsList>
 
-                  <TabsContent value="coordinates" className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="latitude">Latitude</Label>
-                        <Input
-                          id="latitude"
-                          type="number"
-                          step="any"
-                          placeholder="31.5204"
-                          value={inputLat}
-                          onChange={(e) => setInputLat(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="longitude">Longitude</Label>
-                        <Input
-                          id="longitude"
-                          type="number"
-                          step="any"
-                          placeholder="74.3587"
-                          value={inputLng}
-                          onChange={(e) => setInputLng(e.target.value)}
-                        />
-                      </div>
+                <TabsContent value="coordinates" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="latitude">Latitude</Label>
+                      <Input
+                        id="latitude"
+                        type="number"
+                        step="any"
+                        placeholder="31.5204"
+                        value={inputLat}
+                        onChange={(e) => setInputLat(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="longitude">Longitude</Label>
+                      <Input
+                        id="longitude"
+                        type="number"
+                        step="any"
+                        placeholder="74.3587"
+                        value={inputLng}
+                        onChange={(e) => setInputLng(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleCoordinateSubmit}
+                    disabled={isLoading}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                    size="lg"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="mr-2 h-4 w-4" />
+                        Analyze Coordinates
+                      </>
+                    )}
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="image" className="space-y-4 mt-4">
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-emerald-300 rounded-lg p-6 text-center">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg, image/jpg, image/png, image/gif"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      {!imagePreview ? (
+                        <div className="space-y-4">
+                          <Upload className="h-12 w-12 mx-auto text-emerald-400" />
+                          <div>
+                            <p className="text-sm font-medium text-emerald-700">
+                              Upload terrain image
+                            </p>
+                            <p className="text-xs text-emerald-600 mt-1">
+                              JPG, PNG, or GIF up to 10MB
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => fileInputRef.current?.click()}
+                            variant="outline"
+                            size="sm"
+                            className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                          >
+                            <Camera className="mr-2 h-4 w-4" />
+                            Choose Image
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="max-h-48 mx-auto rounded-lg shadow-sm"
+                          />
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              onClick={() => fileInputRef.current?.click()}
+                              variant="outline"
+                              size="sm"
+                              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                            >
+                              <Camera className="mr-2 h-4 w-4" />
+                              Change Image
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setSelectedImage(null);
+                                setImagePreview("");
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <Button
-                      onClick={handleCoordinateSubmit}
-                      disabled={isLoading}
+                      onClick={handleImageAnalysis}
+                      disabled={isLoading || !selectedImage}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
                       size="lg"
                     >
@@ -427,281 +453,193 @@ export default function FloodDetectionSystem() {
                         </>
                       ) : (
                         <>
-                          <MapPin className="mr-2 h-4 w-4" />
-                          Analyze Coordinates
+                          <Image className="mr-2 h-4 w-4" />
+                          Analyze Image
                         </>
                       )}
                     </Button>
-                  </TabsContent>
-
-                  <TabsContent value="image" className="space-y-4 mt-4">
-                    <div className="space-y-4">
-                      <div className="border-2 border-dashed border-emerald-300 rounded-lg p-6 text-center">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/jpeg, image/jpg, image/png, image/gif"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                        {!imagePreview ? (
-                          <div className="space-y-4">
-                            <Upload className="h-12 w-12 mx-auto text-emerald-400" />
-                            <div>
-                              <p className="text-sm font-medium text-emerald-700">
-                                Upload terrain image
-                              </p>
-                              <p className="text-xs text-emerald-600 mt-1">
-                                JPG, PNG, or GIF up to 10MB
-                              </p>
-                            </div>
-                            <Button
-                              onClick={() => fileInputRef.current?.click()}
-                              variant="outline"
-                              size="sm"
-                              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
-                            >
-                              <Camera className="mr-2 h-4 w-4" />
-                              Choose Image
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              className="max-h-48 mx-auto rounded-lg shadow-sm"
-                            />
-                            <div className="flex gap-2 justify-center">
-                              <Button
-                                onClick={() => fileInputRef.current?.click()}
-                                variant="outline"
-                                size="sm"
-                                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
-                              >
-                                <Camera className="mr-2 h-4 w-4" />
-                                Change Image
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  setSelectedImage(null);
-                                  setImagePreview("");
-                                }}
-                                variant="outline"
-                                size="sm"
-                                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        onClick={handleImageAnalysis}
-                        disabled={isLoading || !selectedImage}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                        size="lg"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Image className="mr-2 h-4 w-4" />
-                            Analyze Image
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-
-            {/* Results Section */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-emerald-600" />
-                  Risk Assessment
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading && (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-emerald-600 mb-4" />
-                    <p className="text-emerald-700">
-                      {analysisType === "coordinates"
-                        ? "Analyzing coordinates..."
-                        : "Analyzing image..."}
-                    </p>
                   </div>
-                )}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
 
-                {floodRisk && !isLoading && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {getRiskIcon(floodRisk.riskLevel)}
-                        <span className="font-semibold text-emerald-800">
-                          Risk Level
-                        </span>
-                      </div>
-                      <Badge
-                        variant={getRiskVariant(floodRisk.riskLevel)}
-                        className="text-sm"
-                      >
-                        {floodRisk.riskLevel}
-                      </Badge>
-                    </div>
-
-                    <p className="text-emerald-700 text-sm leading-relaxed">
-                      {escapeHtml(floodRisk.description)}
-                    </p>
-
-                    {locationInfo && (
-                      <div>
-                        <h4 className="font-medium text-emerald-800 mb-2">
-                          Location Information
-                        </h4>
-                        <p className="text-sm text-emerald-700">
-                          {escapeHtml(locationInfo)}
-                        </p>
-                      </div>
-                    )}
-
-                    {waterBodies && (
-                      <div>
-                        <h4 className="font-medium text-emerald-800 mb-2">
-                          Water Bodies
-                        </h4>
-                        <p className="text-sm text-emerald-700">
-                          {escapeHtml(waterBodies)}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-emerald-50 rounded-lg">
-                        <div className="text-2xl font-bold text-emerald-700">
-                          {floodRisk.elevation}m
-                        </div>
-                        <div className="text-xs text-emerald-600">Elevation</div>
-                      </div>
-                      <div className="p-4 bg-emerald-50 rounded-lg">
-                        <div className="text-2xl font-bold text-emerald-700">
-                          {floodRisk.distanceFromWater}m
-                        </div>
-                        <div className="text-xs text-emerald-600">From Water</div>
-                      </div>
-                    </div>
-
-                    {aiAnalysis && (
-                      <>
-                        <Separator />
-                        <div>
-                          <h4 className="font-medium text-emerald-800 mb-3">
-                            AI Analysis
-                          </h4>
-                          <div className="p-3 bg-emerald-50 rounded-lg">
-                            <p className="text-sm text-emerald-700 whitespace-pre-wrap">
-                              {escapeHtml(aiAnalysis)}
-                            </p>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    <div>
-                      <h4 className="font-medium text-emerald-800 mb-3">
-                        Recommendations
-                      </h4>
-                      <ul className="space-y-2">
-                        {floodRisk.recommendations.map((rec, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start gap-2 text-sm text-emerald-700"
-                          >
-                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
-                            {escapeHtml(rec)}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-
-                {!floodRisk && !isLoading && (
-                  <div className="text-center py-12 text-emerald-500">
-                    <Shield className="h-12 w-12 mx-auto mb-4 text-emerald-300" />
-                    <p>Choose an analysis method to see flood risk assessment</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Map Section */}
+          {/* Results Section */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-emerald-600" />
-                Interactive Map
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
+                Risk Assessment
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {mapError ? (
-                <div className="w-full h-80 rounded-lg border border-emerald-200 bg-emerald-50 flex flex-col items-center justify-center">
-                  <Map className="h-16 w-16 text-emerald-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-emerald-800 mb-2">
-                    Map Not Available
-                  </h3>
+              {isLoading && (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-emerald-600 mb-4" />
+                  <p className="text-emerald-700">
+                    {analysisType === "coordinates"
+                      ? "Analyzing coordinates..."
+                      : "Analyzing image..."}
+                  </p>
                 </div>
-              ) : (
-                <div
-                  ref={mapRef}
-                  className="w-full h-80 rounded-lg border border-emerald-200"
-                />
+              )}
+
+              {floodRisk && !isLoading && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {getRiskIcon(floodRisk.riskLevel)}
+                      <span className="font-semibold text-emerald-800">
+                        Risk Level
+                      </span>
+                    </div>
+                    <Badge
+                      variant={getRiskVariant(floodRisk.riskLevel)}
+                      className="text-sm"
+                    >
+                      {floodRisk.riskLevel}
+                    </Badge>
+                  </div>
+
+                  <p className="text-emerald-700 text-sm leading-relaxed">
+                    {floodRisk.description}
+                  </p>
+
+                  {locationInfo && (
+                    <div>
+                      <h4 className="font-medium text-emerald-800 mb-2">
+                        Location Information
+                      </h4>
+                      <p className="text-sm text-emerald-700">{locationInfo}</p>
+                    </div>
+                  )}
+
+                  {waterBodies && (
+                    <div>
+                      <h4 className="font-medium text-emerald-800 mb-2">
+                        Water Bodies
+                      </h4>
+                      <p className="text-sm text-emerald-700">{waterBodies}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-emerald-50 rounded-lg">
+                      <div className="text-2xl font-bold text-emerald-700">
+                        {floodRisk.elevation}m
+                      </div>
+                      <div className="text-xs text-emerald-600">Elevation</div>
+                    </div>
+                    <div className="p-4 bg-emerald-50 rounded-lg">
+                      <div className="text-2xl font-bold text-emerald-700">
+                        {floodRisk.distanceFromWater}m
+                      </div>
+                      <div className="text-xs text-emerald-600">From Water</div>
+                    </div>
+                  </div>
+
+                  {aiAnalysis && (
+                    <>
+                      <Separator />
+                      <div>
+                        <h4 className="font-medium text-emerald-800 mb-3">
+                          AI Analysis
+                        </h4>
+                        <div className="p-3 bg-emerald-50 rounded-lg">
+                          <p className="text-sm text-emerald-700 whitespace-pre-wrap">
+                            {aiAnalysis}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div>
+                    <h4 className="font-medium text-emerald-800 mb-3">
+                      Recommendations
+                    </h4>
+                    <ul className="space-y-2">
+                      {floodRisk.recommendations.map((rec, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 text-sm text-emerald-700"
+                        >
+                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {!floodRisk && !isLoading && (
+                <div className="text-center py-12 text-emerald-500">
+                  <Shield className="h-12 w-12 mx-auto mb-4 text-emerald-300" />
+                  <p>Choose an analysis method to see flood risk assessment</p>
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Alert Dialog with Close Button */}
-        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-          <AlertDialogContent className="max-w-md">
-            <div className="relative">
-              <button
-                onClick={() => setShowAlert(false)}
-                className="absolute right-2 top-2 cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </button>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-emerald-800 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  Input Error
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-emerald-600 mt-2">
-                  {escapeHtml(alertMessage)}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <Button 
-                  onClick={() => setShowAlert(false)}
-                  className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
-                >
-                  OK
-                </Button>
-              </AlertDialogFooter>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
+        {/* Map Section */}
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-emerald-600" />
+              Interactive Map
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {mapError ? (
+              <div className="w-full h-80 rounded-lg border border-emerald-200 bg-emerald-50 flex flex-col items-center justify-center">
+                <Map className="h-16 w-16 text-emerald-300 mb-4" />
+                <h3 className="text-lg font-semibold text-emerald-800 mb-2">
+                  Map Not Available
+                </h3>
+              </div>
+            ) : (
+              <div
+                ref={mapRef}
+                className="w-full h-80 rounded-lg border border-emerald-200"
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </ErrorBoundary>
+
+      {/* Alert Dialog with Close Button */}
+      <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+        <AlertDialogContent className="max-w-md">
+          <div className="relative">
+            <button
+              onClick={() => setShowAlert(false)}
+              className="absolute right-2 top-2 cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-emerald-800 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Input Error
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-emerald-600 mt-2">
+                {alertMessage}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button 
+                onClick={() => setShowAlert(false)}
+                className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
+              >
+                OK
+              </Button>
+            </AlertDialogFooter>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
