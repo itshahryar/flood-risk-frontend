@@ -69,12 +69,18 @@ export default function FloodDetectionSystem() {
 
   // API calls - Fixed the any type issue
   const callAPI = async (endpoint: string, data: CoordinateData | FormData) => {
+    const isCoordinates = endpoint.includes("coordinates");
+    const headers = isCoordinates ? { "Content-Type": "application/json" } : {};
+    
+    // Use type assertion to ensure correct type for body
+    const body = isCoordinates 
+      ? JSON.stringify(data as CoordinateData) 
+      : (data as FormData);
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
-      headers: endpoint.includes("coordinates")
-        ? { "Content-Type": "application/json" }
-        : {},
-      body: endpoint.includes("coordinates") ? JSON.stringify(data) : data,
+      headers,
+      body,
     });
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     return response.json();
