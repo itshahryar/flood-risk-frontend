@@ -41,6 +41,14 @@ interface FloodRiskData {
   waterBodies?: string;
 }
 
+// Define types for API request data
+interface CoordinateData {
+  latitude: number;
+  longitude: number;
+}
+
+type ApiRequestData = CoordinateData | FormData;
+
 export default function FloodDetectionSystem() {
   const [inputLat, setInputLat] = useState("");
   const [inputLng, setInputLng] = useState("");
@@ -62,13 +70,13 @@ export default function FloodDetectionSystem() {
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
   // API calls
-  const callAPI = async (endpoint: string, data: any) => {
+  const callAPI = async (endpoint: string, data: ApiRequestData) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       headers: endpoint.includes("coordinates")
         ? { "Content-Type": "application/json" }
         : {},
-      body: endpoint.includes("coordinates") ? JSON.stringify(data) : data,
+      body: endpoint.includes("coordinates") ? JSON.stringify(data as CoordinateData) : data,
     });
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     return response.json();
@@ -102,10 +110,11 @@ export default function FloodDetectionSystem() {
 
     setIsLoading(true);
     try {
-      const apiResponse = await callAPI("/api/analyze/coordinates", {
+      const coordinateData: CoordinateData = {
         latitude: lat,
         longitude: lng,
-      });
+      };
+      const apiResponse = await callAPI("/api/analyze/coordinates", coordinateData);
       const riskData: FloodRiskData = {
         riskLevel: apiResponse.risk_level,
         description: apiResponse.description,
