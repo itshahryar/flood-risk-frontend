@@ -13,7 +13,6 @@ import {
   AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -30,7 +29,6 @@ import {
   Upload,
   Image,
   Camera,
-  X,
 } from "lucide-react";
 
 interface FloodRiskData {
@@ -39,8 +37,6 @@ interface FloodRiskData {
   recommendations: string[];
   elevation: number;
   distanceFromWater: number;
-  locationInfo?: string;
-  waterBodies?: string;
 }
 
 export default function FloodDetectionSystem() {
@@ -59,13 +55,10 @@ export default function FloodDetectionSystem() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
-  const [locationInfo, setLocationInfo] = useState<string>("");
-  const [waterBodies, setWaterBodies] = useState<string>("");
   const mapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const API_BASE_URL = "https://flood-risk-backend-production.up.railway.app/";
-  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+  const API_BASE_URL = "flood-risk-backend-production.up.railway.app";
 
   // Initialize Google Maps
   useEffect(() => {
@@ -150,13 +143,9 @@ export default function FloodDetectionSystem() {
         recommendations: apiResponse.recommendations,
         elevation: apiResponse.elevation,
         distanceFromWater: apiResponse.distance_from_water,
-        locationInfo: apiResponse.location_info,
-        waterBodies: apiResponse.water_bodies,
       };
       setFloodRisk(riskData);
       setAiAnalysis(apiResponse.ai_analysis || "");
-      setLocationInfo(apiResponse.location_info || "");
-      setWaterBodies(apiResponse.water_bodies || "");
 
       // Update map
       if (map) {
@@ -201,24 +190,15 @@ export default function FloodDetectionSystem() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Check file size
-      if (file.size > 10 * 1024 * 1024) {
-        setAlertMessage("Image size must be less than 10MB");
-        setShowAlert(true);
-        return;
-      }
-      
-      // Check file type
-      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      if (file.size > 10 * 1024 * 1024 || !file.type.startsWith("image/")) {
         setAlertMessage(
-          `Invalid image format. Allowed formats are: ${ALLOWED_IMAGE_TYPES.map(
-            type => type.replace("image/", "").toUpperCase()
-          ).join(", ")}`
+          file.size > 10 * 1024 * 1024
+            ? "Image size must be less than 10MB"
+            : "Please select a valid image file"
         );
         setShowAlert(true);
         return;
       }
-      
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target?.result as string);
@@ -244,13 +224,9 @@ export default function FloodDetectionSystem() {
         recommendations: apiResponse.recommendations,
         elevation: apiResponse.elevation,
         distanceFromWater: apiResponse.distance_from_water,
-        locationInfo: apiResponse.location_info,
-        waterBodies: apiResponse.water_bodies,
       };
       setFloodRisk(riskData);
       setAiAnalysis(apiResponse.ai_analysis || "");
-      setLocationInfo(apiResponse.location_info || "");
-      setWaterBodies(apiResponse.water_bodies || "");
     } catch (error) {
       console.error("Error analyzing image:", error);
       setAlertMessage(
@@ -269,7 +245,6 @@ export default function FloodDetectionSystem() {
       : riskLevel === "Medium"
       ? "secondary"
       : "default";
-      
   const getRiskIcon = (riskLevel: string) =>
     riskLevel === "Very High" || riskLevel === "High" ? (
       <AlertTriangle className="h-4 w-4" />
@@ -280,19 +255,19 @@ export default function FloodDetectionSystem() {
     );
 
   return (
-    <div className="">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-emerald-100 rounded-full mr-4">
-              <Globe className="h-8 w-8 text-emerald-600" />
+            <div className="p-3 bg-blue-100 rounded-full mr-4">
+              <Globe className="h-8 w-8 text-blue-600" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-700">
+            <h1 className="text-3xl font-bold text-slate-900">
               Flood Detection System
             </h1>
           </div>
-          <p className="text-emerald-700">
+          <p className="text-slate-600">
             Analyze flood risk using coordinates or upload images for AI-powered
             terrain analysis
           </p>
@@ -303,7 +278,7 @@ export default function FloodDetectionSystem() {
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-emerald-600" />
+                <Shield className="h-5 w-5 text-blue-600" />
                 Analysis Methods
               </CardTitle>
             </CardHeader>
@@ -318,14 +293,14 @@ export default function FloodDetectionSystem() {
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger
                     value="coordinates"
-                    className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
+                    className="flex items-center gap-2"
                   >
                     <MapPin className="h-4 w-4" />
                     Coordinates
                   </TabsTrigger>
                   <TabsTrigger
                     value="image"
-                    className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
+                    className="flex items-center gap-2"
                   >
                     <Image className="h-4 w-4" />
                     Image Analysis
@@ -340,7 +315,7 @@ export default function FloodDetectionSystem() {
                         id="latitude"
                         type="number"
                         step="any"
-                        placeholder="31.5204"
+                        placeholder="40.7128"
                         value={inputLat}
                         onChange={(e) => setInputLat(e.target.value)}
                       />
@@ -351,7 +326,7 @@ export default function FloodDetectionSystem() {
                         id="longitude"
                         type="number"
                         step="any"
-                        placeholder="74.3587"
+                        placeholder="-74.0060"
                         value={inputLng}
                         onChange={(e) => setInputLng(e.target.value)}
                       />
@@ -360,7 +335,7 @@ export default function FloodDetectionSystem() {
                   <Button
                     onClick={handleCoordinateSubmit}
                     disabled={isLoading}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                    className="w-full"
                     size="lg"
                   >
                     {isLoading ? (
@@ -379,22 +354,22 @@ export default function FloodDetectionSystem() {
 
                 <TabsContent value="image" className="space-y-4 mt-4">
                   <div className="space-y-4">
-                    <div className="border-2 border-dashed border-emerald-300 rounded-lg p-6 text-center">
+                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center">
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/jpeg, image/jpg, image/png, image/gif"
+                        accept="image/*"
                         onChange={handleImageUpload}
                         className="hidden"
                       />
                       {!imagePreview ? (
                         <div className="space-y-4">
-                          <Upload className="h-12 w-12 mx-auto text-emerald-400" />
+                          <Upload className="h-12 w-12 mx-auto text-slate-400" />
                           <div>
-                            <p className="text-sm font-medium text-emerald-700">
+                            <p className="text-sm font-medium text-slate-700">
                               Upload terrain image
                             </p>
-                            <p className="text-xs text-emerald-600 mt-1">
+                            <p className="text-xs text-slate-500 mt-1">
                               JPG, PNG, or GIF up to 10MB
                             </p>
                           </div>
@@ -402,7 +377,6 @@ export default function FloodDetectionSystem() {
                             onClick={() => fileInputRef.current?.click()}
                             variant="outline"
                             size="sm"
-                            className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
                           >
                             <Camera className="mr-2 h-4 w-4" />
                             Choose Image
@@ -420,7 +394,6 @@ export default function FloodDetectionSystem() {
                               onClick={() => fileInputRef.current?.click()}
                               variant="outline"
                               size="sm"
-                              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
                             >
                               <Camera className="mr-2 h-4 w-4" />
                               Change Image
@@ -432,7 +405,6 @@ export default function FloodDetectionSystem() {
                               }}
                               variant="outline"
                               size="sm"
-                              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 cursor-pointer"
                             >
                               Remove
                             </Button>
@@ -443,7 +415,7 @@ export default function FloodDetectionSystem() {
                     <Button
                       onClick={handleImageAnalysis}
                       disabled={isLoading || !selectedImage}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                      className="w-full"
                       size="lg"
                     >
                       {isLoading ? (
@@ -468,15 +440,15 @@ export default function FloodDetectionSystem() {
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-emerald-600" />
+                <TrendingUp className="h-5 w-5 text-green-600" />
                 Risk Assessment
               </CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading && (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-emerald-600 mb-4" />
-                  <p className="text-emerald-700">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+                  <p className="text-slate-600">
                     {analysisType === "coordinates"
                       ? "Analyzing coordinates..."
                       : "Analyzing image..."}
@@ -489,9 +461,7 @@ export default function FloodDetectionSystem() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {getRiskIcon(floodRisk.riskLevel)}
-                      <span className="font-semibold text-emerald-800">
-                        Risk Level
-                      </span>
+                      <span className="font-semibold">Risk Level</span>
                     </div>
                     <Badge
                       variant={getRiskVariant(floodRisk.riskLevel)}
@@ -501,40 +471,22 @@ export default function FloodDetectionSystem() {
                     </Badge>
                   </div>
 
-                  <p className="text-emerald-700 text-sm leading-relaxed">
+                  <p className="text-slate-600 text-sm leading-relaxed">
                     {floodRisk.description}
                   </p>
 
-                  {locationInfo && (
-                    <div>
-                      <h4 className="font-medium text-emerald-800 mb-2">
-                        Location Information
-                      </h4>
-                      <p className="text-sm text-emerald-700">{locationInfo}</p>
-                    </div>
-                  )}
-
-                  {waterBodies && (
-                    <div>
-                      <h4 className="font-medium text-emerald-800 mb-2">
-                        Water Bodies
-                      </h4>
-                      <p className="text-sm text-emerald-700">{waterBodies}</p>
-                    </div>
-                  )}
-
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-emerald-50 rounded-lg">
-                      <div className="text-2xl font-bold text-emerald-700">
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
                         {floodRisk.elevation}m
                       </div>
-                      <div className="text-xs text-emerald-600">Elevation</div>
+                      <div className="text-xs text-slate-500">Elevation</div>
                     </div>
-                    <div className="p-4 bg-emerald-50 rounded-lg">
-                      <div className="text-2xl font-bold text-emerald-700">
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
                         {floodRisk.distanceFromWater}m
                       </div>
-                      <div className="text-xs text-emerald-600">From Water</div>
+                      <div className="text-xs text-slate-500">From Water</div>
                     </div>
                   </div>
 
@@ -542,11 +494,11 @@ export default function FloodDetectionSystem() {
                     <>
                       <Separator />
                       <div>
-                        <h4 className="font-medium text-emerald-800 mb-3">
+                        <h4 className="font-medium text-slate-700 mb-3">
                           AI Analysis
                         </h4>
-                        <div className="p-3 bg-emerald-50 rounded-lg">
-                          <p className="text-sm text-emerald-700 whitespace-pre-wrap">
+                        <div className="p-3 bg-slate-50 rounded-lg">
+                          <p className="text-sm text-slate-600 whitespace-pre-wrap">
                             {aiAnalysis}
                           </p>
                         </div>
@@ -555,16 +507,16 @@ export default function FloodDetectionSystem() {
                   )}
 
                   <div>
-                    <h4 className="font-medium text-emerald-800 mb-3">
+                    <h4 className="font-medium text-slate-700 mb-3">
                       Recommendations
                     </h4>
                     <ul className="space-y-2">
                       {floodRisk.recommendations.map((rec, index) => (
                         <li
                           key={index}
-                          className="flex items-start gap-2 text-sm text-emerald-700"
+                          className="flex items-start gap-2 text-sm text-slate-600"
                         >
-                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
+                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
                           {rec}
                         </li>
                       ))}
@@ -574,8 +526,8 @@ export default function FloodDetectionSystem() {
               )}
 
               {!floodRisk && !isLoading && (
-                <div className="text-center py-12 text-emerald-500">
-                  <Shield className="h-12 w-12 mx-auto mb-4 text-emerald-300" />
+                <div className="text-center py-12 text-slate-500">
+                  <Shield className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                   <p>Choose an analysis method to see flood risk assessment</p>
                 </div>
               )}
@@ -587,57 +539,39 @@ export default function FloodDetectionSystem() {
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-emerald-600" />
+              <Globe className="h-5 w-5 text-green-600" />
               Interactive Map
             </CardTitle>
           </CardHeader>
           <CardContent>
             {mapError ? (
-              <div className="w-full h-80 rounded-lg border border-emerald-200 bg-emerald-50 flex flex-col items-center justify-center">
-                <Map className="h-16 w-16 text-emerald-300 mb-4" />
-                <h3 className="text-lg font-semibold text-emerald-800 mb-2">
+              <div className="w-full h-80 rounded-lg border border-slate-200 bg-slate-50 flex flex-col items-center justify-center">
+                <Map className="h-16 w-16 text-slate-300 mb-4" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">
                   Map Not Available
                 </h3>
+                <p className="text-slate-500 text-center max-w-md">
+                  To enable the interactive map, set up a Google Maps API key in
+                  .env.local
+                </p>
               </div>
             ) : (
               <div
                 ref={mapRef}
-                className="w-full h-80 rounded-lg border border-emerald-200"
+                className="w-full h-80 rounded-lg border border-slate-200"
               />
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Alert Dialog with Close Button */}
+      {/* Alert Dialog */}
       <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-        <AlertDialogContent className="max-w-md">
-          <div className="relative">
-            <button
-              onClick={() => setShowAlert(false)}
-              className="absolute right-2 top-2 cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </button>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-emerald-800 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                Input Error
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-emerald-600 mt-2">
-                {alertMessage}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <Button 
-                onClick={() => setShowAlert(false)}
-                className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
-              >
-                OK
-              </Button>
-            </AlertDialogFooter>
-          </div>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Input Error</AlertDialogTitle>
+            <AlertDialogDescription>{alertMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
         </AlertDialogContent>
       </AlertDialog>
     </div>
