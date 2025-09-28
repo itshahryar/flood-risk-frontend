@@ -41,6 +41,12 @@ interface FloodRiskData {
   waterBodies?: string;
 }
 
+// Define types for the API call data
+interface CoordinateData {
+  latitude: number;
+  longitude: number;
+}
+
 export default function FloodDetectionSystem() {
   const [inputLat, setInputLat] = useState("");
   const [inputLng, setInputLng] = useState("");
@@ -61,8 +67,8 @@ export default function FloodDetectionSystem() {
   const API_BASE_URL = "https://flood-risk-backend-production.up.railway.app/";
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
-  // API calls
-  const callAPI = async (endpoint: string, data: any) => {
+  // API calls - Fixed the any type issue
+  const callAPI = async (endpoint: string, data: CoordinateData | FormData) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       headers: endpoint.includes("coordinates")
@@ -549,4 +555,4 @@ export default function FloodDetectionSystem() {
       </AlertDialog>
     </div>
   );
-}
+}ok
