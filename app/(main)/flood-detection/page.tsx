@@ -63,13 +63,13 @@ export default function FloodDetectionSystem() {
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
   // API calls
-  const callAPI = async (endpoint: string, data: object | FormData) => {
+  const callAPI = async (endpoint: string, data: Record<string, any> | FormData) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       headers: endpoint.includes("coordinates")
         ? { "Content-Type": "application/json" }
         : {},
-      body: endpoint.includes("coordinates") ? JSON.stringify(data) : data,
+      body: endpoint.includes("coordinates") ? JSON.stringify(data as Record<string, any>) : data,
     });
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     return response.json();
