@@ -64,7 +64,7 @@ export default function FloodDetectionSystem() {
   const mapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const API_BASE_URL = "http://localhost:8000";
+  const API_BASE_URL = "https://flood-risk-backend-production.up.railway.app/";
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
   // Initialize Google Maps
