@@ -17,6 +17,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
+  MapPin,
   AlertTriangle,
   CheckCircle,
   Info,
@@ -62,13 +63,13 @@ export default function FloodDetectionSystem() {
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
   // API calls
-  const callAPI = async (endpoint: string, data: Record<string, unknown> | FormData) => {
+  const callAPI = async (endpoint: string, data: any) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       headers: endpoint.includes("coordinates")
         ? { "Content-Type": "application/json" }
         : {},
-      body: endpoint.includes("coordinates") ? JSON.stringify(data as Record<string, unknown>) : data,
+      body: endpoint.includes("coordinates") ? JSON.stringify(data) : data,
     });
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     return response.json();
@@ -252,7 +253,7 @@ export default function FloodDetectionSystem() {
                     value="coordinates"
                     className="flex items-center gap-2 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700"
                   >
-                    <Globe className="h-4 w-4" />
+                    <MapPin className="h-4 w-4" />
                     Coordinates
                   </TabsTrigger>
                   <TabsTrigger
@@ -302,7 +303,7 @@ export default function FloodDetectionSystem() {
                       </>
                     ) : (
                       <>
-                        <Globe className="mr-2 h-4 w-4" />
+                        <MapPin className="mr-2 h-4 w-4" />
                         Analyze Coordinates
                       </>
                     )}
